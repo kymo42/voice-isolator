@@ -1,5 +1,5 @@
 @echo off
-echo Installing Voice Isolator...
+echo Installing SpeakerLove...
 echo.
 
 REM Check if Python is installed

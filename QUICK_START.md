@@ -1,4 +1,4 @@
-# Quick Start Guide - Voice Isolator
+# Quick Start Guide - SpeakerLove
 
 ## 🚀 5-Minute Setup
 
@@ -12,7 +12,7 @@
 2. Set **Hardware Out 2** to **VoiceMeeter AUX** (this captures speaker audio)
 3. Set application audio output to go through VoiceMeeter
 
-### Step 3: Run Voice Isolator (1 minute)
+### Step 3: Run SpeakerLove (1 minute)
 ```
 Double-click: run.bat
 ```

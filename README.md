@@ -1,10 +1,10 @@
-# Voice Isolator - Gaming Audio Processor
+# SpeakerLove - Gaming Audio Processor
 
-Clean voice communication for gamers using speakers instead of headsets.
+Clean voice communication for gamers who LOVE using speakers instead of headsets.
 
 ## What It Does
 
-**Voice Isolator** removes game/speaker audio from your microphone input so your teammates hear only your voice during gaming.
+**SpeakerLove** removes game/speaker audio from your microphone input so your teammates hear only your voice during gaming.
 
 ### Perfect For:
 - 🎮 Gamers who use **speakers instead of headsets**
@@ -15,7 +15,7 @@ Clean voice communication for gamers using speakers instead of headsets.
 ### How It Works:
 
 ```
-Your Microphone + Game Audio → Voice Isolator → Clean Voice Only
+Your Microphone + Game Audio → SpeakerLove → Clean Voice Only
                                     ↓
                           Discord/Team Chat receives
                           just your voice (no game!)
@@ -32,7 +32,7 @@ Your Microphone + Game Audio → Voice Isolator → Clean Voice Only
 ## Installation
 
 ### Option 1: Use the .exe (Easiest)
-1. Download `voice_isolator.exe` from the dist folder
+1. Download `SpeakerLove.exe` from the releases
 2. Double-click to run
 3. Follow setup instructions below
 
@@ -47,7 +47,7 @@ python voice_isolator.py
 
 1. Download from: https://vb-audio.com/Voicemeeter/
 2. Install and **restart your PC**
-3. This creates virtual audio devices needed for Voice Isolator
+3. This creates virtual audio devices needed for SpeakerLove
 
 ### Step 2: Route Your Game Audio Through VoiceMeeter
 
@@ -62,9 +62,9 @@ python voice_isolator.py
 2. Volume mixer → Find your game/app
 3. Change output to "VoiceMeeter Virtual Input"
 
-### Step 3: Run Voice Isolator
+### Step 3: Run SpeakerLove
 
-1. Run `voice_isolator.exe` (or `python voice_isolator.py`)
+1. Run `SpeakerLove.exe` (or `python voice_isolator.py`)
 2. The GUI will open
 
 ### Step 4: Select Audio Devices
@@ -91,7 +91,7 @@ python voice_isolator.py
 
 ### Step 6: Configure Discord/Game
 
-Set your voice chat input device to the **same Voicemeeter option** you selected in Voice Isolator:
+Set your voice chat input device to the **same Voicemeeter option** you selected in SpeakerLove:
 
 **Discord:**
 - User Settings → Voice & Video
@@ -120,7 +120,7 @@ Set your voice chat input device to the **same Voicemeeter option** you selected
 ### Issue: Output dropdown doesn't show Voicemeeter
 **Solution:** 
 - Make sure VoiceMeeter is fully installed
-- Restart Voice Isolator
+- Restart SpeakerLove
 
 ### Issue: Can't hear game audio through speakers
 **Solution:**
@@ -133,7 +133,7 @@ Set your voice chat input device to the **same Voicemeeter option** you selected
 1. Double-check Output device is set to Voicemeeter (not [13] or speakers!)
 2. If already correct, try different Voicemeeter option in Output dropdown
 
-### Issue: Voice Isolator won't start (RED error)
+### Issue: SpeakerLove won't start (RED error)
 **Solution:**
 1. Refresh devices
 2. Try different Loopback option
@@ -193,7 +193,7 @@ Free and open source
 
 ## GitHub
 
-https://github.com/yourusername/voice-isolator
+https://github.com/kymo42/SpeakerLove
 
 ## Contributing
 

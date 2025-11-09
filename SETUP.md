@@ -1,4 +1,4 @@
-# Voice Isolator - Complete Setup Guide
+# SpeakerLove - Complete Setup Guide
 
 ## What This Program Does
 
@@ -21,7 +21,7 @@ You need software to route speaker output to a virtual input device.
 **RECOMMENDED: VB-Audio VoiceMeeter**
 - **Download**: https://vb-audio.com/Voicemeeter/
 - **Cost**: Free (Donationware - pay if you like it)
-- **Why**: Industry standard, works perfectly with Voice Isolator
+- **Why**: Industry standard, works perfectly with SpeakerLove
 - **Installation**: 
   1. Download the installer
   2. Run and install
@@ -40,7 +40,7 @@ You need software to route speaker output to a virtual input device.
 ### Step 1: Install VoiceMeeter
 See Prerequisites above - this is essential!
 
-### Step 2: Install Voice Isolator
+### Step 2: Install SpeakerLove
 ```bash
 cd C:\Users\0\VoiceIsolator
 python voice_isolator.py
@@ -78,15 +78,15 @@ You should see:
 #### B. Configure Outputs
 1. Find **"Hardware Out 1"** section (left side) - this should be YOUR SPEAKERS
 2. Find **"Hardware Out 2"** section (middle) - set to **"VoiceMeeter Aux Output"**
-   - This is what Voice Isolator will use to capture speaker audio
+   - This is what SpeakerLove will use to capture speaker audio
 
 #### C. Configure Application Audio
 1. In Windows Volume Mixer, set applications to output to **VoiceMeeter Virtual Input**
    - Open: Settings → Sound → Volume mixer → Advanced
    - For each app (Browser, Discord, etc.) → Set output to VoiceMeeter
-2. This ensures Voice Isolator sees what you're playing
+2. This ensures SpeakerLove sees what you're playing
 
-### Phase 3: Configure Voice Isolator
+### Phase 3: Configure SpeakerLove
 1. Run the program:
    ```bash
    python voice_isolator.py
@@ -106,7 +106,7 @@ For each app that needs isolated voice (Discord, Teams, Zoom, etc.):
 
 **Discord:**
 1. User Settings → Voice & Video
-2. Input Device: Select your **Output Virtual Mic** (from Voice Isolator)
+2. Input Device: Select your **Output Virtual Mic** (from SpeakerLove)
 3. Test by speaking - speaker audio should NOT transmit
 
 **Teams:**
@@ -122,7 +122,7 @@ For each app that needs isolated voice (Discord, Teams, Zoom, etc.):
 
 ## Quick Test
 
-1. **Start Voice Isolator** (GUI application)
+1. **Start SpeakerLove** (GUI application)
 2. **Play YouTube video** or music through speakers
 3. **Speak into microphone** - record audio
 4. **Check**: Your voice should be heard, speaker audio should NOT
@@ -148,7 +148,7 @@ For each app that needs isolated voice (Discord, Teams, Zoom, etc.):
    ↓
    Contains: What's playing through speakers
    
-3. Voice Isolator Engine
+3. SpeakerLove Engine
    ↓
    Calculation: Clean = Microphone - Speaker
    
@@ -194,7 +194,7 @@ For each app that needs isolated voice (Discord, Teams, Zoom, etc.):
 ### Issue: No audio in applications
 **Cause**: Applications not set to use the output virtual device
 **Solutions:**
-1. Verify Voice Isolator is running (green "Running" status)
+1. Verify SpeakerLove is running (green "Running" status)
 2. Check Discord/Teams/Zoom is set to your output device
 3. Check Windows Volume Mixer (Settings → Sound → Volume mixer)
 4. Restart the application after changing microphone device
@@ -258,22 +258,22 @@ Look at the [number] before device names.
 
 ### Scenario 1: Gaming with Discord
 1. Route game audio through VoiceMeeter
-2. Set Discord input to Voice Isolator output
+2. Set Discord input to SpeakerLove output
 3. Result: Team hears only your voice, not game audio
 
 ### Scenario 2: Online Meeting with Browser Audio
 1. YouTube/Spotify → VoiceMeeter
-2. Zoom/Teams input → Voice Isolator output
+2. Zoom/Teams input → SpeakerLove output
 3. Result: Colleagues hear only you, not the background audio
 
 ### Scenario 3: Music Production Streaming
 1. DAW/Music → VoiceMeeter
-2. OBS/Streaming software microphone → Voice Isolator output
+2. OBS/Streaming software microphone → SpeakerLove output
 3. Result: Stream sees music + your clean voice (no echo)
 
 ### Scenario 4: Tutorial Recording
 1. Browser/Reference → VoiceMeeter
-2. OBS microphone → Voice Isolator output
+2. OBS microphone → SpeakerLove output
 3. Result: Recording has tutorial audio + your narration (clean)
 
 ---
@@ -311,7 +311,7 @@ Y[n] = TANH(M[n] - α × S[n-d])
 1. **Lower CPU usage**: Increase chunk_size to 4096
 2. **Lower latency**: Use lower chunk_size (512-1024)
 3. **Cleaner audio**: Adjust subtraction_strength carefully
-4. **Multiple streams**: Run one Voice Isolator per pair of input/output devices
+4. **Multiple streams**: Run one SpeakerLove per pair of input/output devices
 
 ---
 
@@ -321,7 +321,7 @@ Y[n] = TANH(M[n] - α × S[n-d])
 A: If the app lets you select microphone input device, yes!
 
 **Q: Can I use multiple microphones?**  
-A: Yes, run Voice Isolator multiple times with different device configs.
+A: Yes, run SpeakerLove multiple times with different device configs.
 
 **Q: Does this work on Mac/Linux?**  
 A: Code is cross-platform Python, but requires system-specific audio routing setup.
@@ -349,7 +349,7 @@ A: ~5-15% on modern CPUs, less with larger chunk sizes.
 ## What's Next?
 
 1. ✓ Install VoiceMeeter
-2. ✓ Run Voice Isolator GUI
+2. ✓ Run SpeakerLove GUI
 3. ✓ Select devices
 4. ✓ Click "Start Voice Isolation"
 5. ✓ Configure your apps

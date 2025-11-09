@@ -203,7 +203,7 @@ class GUI:
         info_text = """
 Your Voice + Game Audio → Microphone Input
                     ↓
-            Voice Isolator
+            SpeakerLove
                     ↓
 Clean Voice Only → Discord/Team Chat (they hear only you!)
         """
@@ -343,7 +343,7 @@ SETUP:
 1. Install VoiceMeeter: https://vb-audio.com/Voicemeeter/
    - Route your game/app audio through VoiceMeeter
    
-2. Select devices in Voice Isolator:
+2. Select devices in SpeakerLove:
    - Your Microphone: Your physical microphone
    - Game/Speaker Audio: Capture device (Stereo Mix or What U Hear)
    - Output (Virtual Mic): Voicemeeter Input device

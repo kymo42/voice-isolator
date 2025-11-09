@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 List all available audio devices on the system.
-Helps identify which device numbers to use in Voice Isolator.
+Helps identify which device numbers to use in SpeakerLove.
 """
 
 import sounddevice as sd
@@ -89,7 +89,7 @@ def main():
     print()
     print("USAGE IN VOICE ISOLATOR:")
     print("-" * 80)
-    print("1. Open Voice Isolator: python voice_isolator.py")
+    print("1. Open SpeakerLove: python voice_isolator.py")
     print("2. Select the recommended devices above")
     print("3. If loopback not found, install VoiceMeeter first")
     print()
