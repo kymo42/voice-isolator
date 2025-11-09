@@ -1,11 +1,11 @@
 """
-Voice Isolator - Gaming Voice Chat Audio Processor
+SpeakerLove - Gaming Voice Chat Audio Processor
 Remove speaker/game audio from microphone input for clean voice transmission
 
-For gamers who use speakers instead of headsets and want clean voice communication
+For gamers who LOVE using speakers instead of headsets and want clean voice communication
 without hearing their own voice or game audio in team chat.
 
-GitHub: https://github.com/yourusername/voice-isolator
+GitHub: https://github.com/yourusername/speakerlove
 """
 
 import numpy as np
@@ -17,7 +17,7 @@ from tkinter import ttk, messagebox
 import sounddevice as sd
 import sys
 
-class VoiceIsolator:
+class SpeakerLove:
     """Core audio processing engine"""
     
     def __init__(self, mic_device, speaker_device, output_device, sample_rate=44100, chunk_size=2048):
@@ -30,9 +30,11 @@ class VoiceIsolator:
         self.running = False
         self.enabled = False
         self.subtraction_strength = 1.0
+        self.delay_compensation = 0
         
         self.audio_queue = queue.Queue(maxsize=5)
         self.speaker_queue = queue.Queue(maxsize=5)
+        self.output_queue = queue.Queue(maxsize=5)
         
         self.mic_stream = None
         self.speaker_stream = None
@@ -64,7 +66,7 @@ class VoiceIsolator:
         """Output callback"""
         try:
             try:
-                processed = self.audio_queue.get(timeout=0.01)
+                processed = self.output_queue.get(timeout=0.01)
                 if outdata.ndim == 1:
                     outdata[:] = processed[:len(outdata)]
                 else:
@@ -77,7 +79,7 @@ class VoiceIsolator:
     
     def process_audio(self):
         """Main processing loop"""
-        speaker_buffer = deque(maxlen=self.sample_rate)
+        speaker_buffer = deque(maxlen=10)  # Much smaller buffer for lower latency
         
         while self.running:
             try:
@@ -94,20 +96,24 @@ class VoiceIsolator:
                 if self.enabled and len(speaker_buffer) > 0:
                     # Combine speaker buffer
                     speaker_combined = np.concatenate(list(speaker_buffer))
-                    
+
+                    # Apply delay compensation if set
+                    if self.delay_compensation != 0:
+                        speaker_combined = np.roll(speaker_combined, self.delay_compensation)
+
                     # Align lengths
                     min_len = min(len(mic_audio), len(speaker_combined))
                     mic_audio = mic_audio[:min_len]
                     speaker_combined = speaker_combined[:min_len]
-                    
+
                     # Subtract: Clean Voice = Microphone - Speaker Audio
                     cleaned = mic_audio - (speaker_combined * self.subtraction_strength)
-                    cleaned = np.tanh(cleaned)
+                    cleaned = np.tanh(cleaned)  # Soft clipping
                 else:
                     cleaned = mic_audio
-                
+
                 try:
-                    self.audio_queue.put_nowait(cleaned)
+                    self.output_queue.put_nowait(cleaned)
                 except queue.Full:
                     pass
                     
@@ -178,7 +184,7 @@ class GUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("Voice Isolator - Gaming Audio Processor")
+        self.root.title("SpeakerLove - Gaming Audio Processor")
         self.root.geometry("750x600")
         
         self.isolator = None
@@ -186,9 +192,9 @@ class GUI:
         # Title
         title_frame = ttk.Frame(root)
         title_frame.pack(pady=10)
-        ttk.Label(title_frame, text="Voice Isolator", font=("Arial", 18, "bold")).pack()
+        ttk.Label(title_frame, text="SpeakerLove", font=("Arial", 18, "bold")).pack()
         ttk.Label(title_frame, text="Remove game/speaker audio from your voice", font=("Arial", 10)).pack()
-        ttk.Label(title_frame, text="Perfect for gamers using speakers instead of headsets", font=("Arial", 9, "italic"), foreground="gray").pack()
+        ttk.Label(title_frame, text="For gamers who LOVE using speakers instead of headsets", font=("Arial", 9, "italic"), foreground="gray").pack()
         
         # Info frame
         info_frame = ttk.LabelFrame(root, text="How It Works", padding=10)
@@ -243,6 +249,13 @@ Clean Voice Only → Discord/Team Chat (they hear only you!)
         ttk.Scale(set_frame, from_=0.5, to=2.0, variable=self.strength_var, command=self.update_strength).grid(row=0, column=1, sticky=tk.EW)
         self.strength_label = ttk.Label(set_frame, text="1.0", width=5)
         self.strength_label.grid(row=0, column=2, padx=5)
+
+        ttk.Label(set_frame, text="Delay Compensation (samples):").grid(row=1, column=0, sticky=tk.W, pady=(10,0))
+        self.delay_var = tk.IntVar(value=0)
+        ttk.Spinbox(set_frame, from_=-500, to=500, textvariable=self.delay_var, command=self.update_delay).grid(row=1, column=1, sticky=tk.W)
+        self.delay_label = ttk.Label(set_frame, text="0", width=5)
+        self.delay_label.grid(row=1, column=2, padx=5)
+
         set_frame.columnconfigure(1, weight=1)
         
         # Buttons
@@ -311,6 +324,13 @@ Clean Voice Only → Discord/Team Chat (they hear only you!)
         self.strength_label.config(text=f"{val:.2f}")
         if self.isolator:
             self.isolator.subtraction_strength = val
+
+    def update_delay(self):
+        """Update delay compensation"""
+        val = self.delay_var.get()
+        self.delay_label.config(text=str(val))
+        if self.isolator:
+            self.isolator.delay_compensation = val
     
     def show_help(self):
         """Show help dialog"""
@@ -361,7 +381,7 @@ For issues or setup help, see the README file.
                     messagebox.showerror("Error", "Invalid device selection")
                     return
                 
-                self.isolator = VoiceIsolator(mic_id, speaker_id, output_id)
+                self.isolator = SpeakerLove(mic_id, speaker_id, output_id)
                 self.isolator.subtraction_strength = self.strength_var.get()
                 
                 if self.isolator.start():
