@@ -5,7 +5,7 @@ Remove speaker/game audio from microphone input for clean voice transmission
 For gamers who LOVE using speakers instead of headsets and want clean voice communication
 without hearing their own voice or game audio in team chat.
 
-GitHub: https://github.com/kymo42/SpeakerLove
+GitHub: https://github.com/yourusername/speakerlove
 """
 
 import numpy as np
@@ -369,154 +369,154 @@ class GUI:
                        arrowcolor="#FF6B35")
     
     def refresh_devices(self):
-        """Load and display devices correctly"""
-        try:
-            devices = sd.query_devices()
-            
-            mics = []
-            speakers = []
-            outputs = []
-            
-            for i, dev in enumerate(devices):
-                name_lower = dev['name'].lower()
-                dev_str = f"[{i}] {dev['name']}"
-                
-                # MICROPHONES: Real mics are typically 1-2 channels input, 0 output
-                if dev['max_input_channels'] in [1, 2] and dev['max_output_channels'] == 0:
-                    if any(k in name_lower for k in ['microphone', 'mic', 'capture', 'input']):
-                        if not any(k in name_lower for k in ['voicemeeter', 'what u hear', 'stereo mix']):
-                            mics.append(dev_str)
-                
-                # LOOPBACK: Has 2+ input channels, 0 output
-                if dev['max_output_channels'] == 0 and dev['max_input_channels'] > 0:
-                    if any(k in name_lower for k in ['voicemeeter', 'what u hear', 'stereo mix', 'input (']):
-                        speakers.append(dev_str)
-                
-                # OUTPUT: Voicemeeter virtual microphones
-                if dev['max_output_channels'] > 0:
-                    if any(k in name_lower for k in ['voicemeeter']):
-                        outputs.append(dev_str)
-                    else:
-                        # Also include physical speakers as fallback
-                        if any(k in name_lower for k in ['speaker', 'sound mapper']):
-                            outputs.append(dev_str)
-            
-            self.mic_combo['values'] = mics
-            self.speaker_combo['values'] = speakers
-            self.output_combo['values'] = outputs
-            
-            if mics:
-                self.mic_combo.current(0)
-            if speakers:
-                stereo_mix_idx = next((i for i, s in enumerate(speakers) if 'stereo mix' in s.lower()), 0)
-                self.speaker_combo.current(stereo_mix_idx)
-            if outputs:
-                # Try to find Voicemeeter Input as default
-                voicemeeter_idx = next((i for i, s in enumerate(outputs) if 'voicemeeter input' in s.lower()), 0)
-                self.output_combo.current(voicemeeter_idx)
-            
-            print(f"Found {len(mics)} mics, {len(speakers)} loopbacks, {len(outputs)} outputs")
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Device refresh failed: {e}")
-    
-    def update_strength(self, value):
-        """Update strength display and value"""
-        val = float(value)
-        self.strength_label.config(text=f"{val:.1f}")
-        if self.isolator:
-            self.isolator.subtraction_strength = val
-
-    def update_delay(self):
-        """Update delay compensation"""
-        val = self.delay_var.get()
-        self.delay_label.config(text=f"±{val}ms")
-        if self.isolator:
-            self.isolator.delay_compensation = val
-    
-    def show_help(self):
-        """Show help dialog"""
-        help_text = """
-SPEAKERLOVE - GAMING SETUP GUIDE
-
-For gamers who use SPEAKERS instead of headsets and want clean voice chat.
-
-SETUP:
-1. Install VoiceMeeter: https://vb-audio.com/Voicemeeter/
-   - Route your game/app audio through VoiceMeeter
-   
-2. Select devices in SpeakerLove:
-   - Your Microphone: Your physical microphone
-   - Game/Speaker Audio: Capture device (Stereo Mix or What U Hear)
-   - Output (Virtual Mic): Voicemeeter Input device
-   
-3. Set Discord/Team Voice Input to: Voicemeeter Input device
-
-4. Click START and adjust sliders if needed
-
-RESULT:
-- You don't hear your own voice (no echo!)
-- Teammates hear only your voice (no game audio!)
-- Clean, professional voice communication
-
-For issues or setup help, see the README file.
-        """
-        messagebox.showinfo("Help", help_text)
-    
-    def update_status(self, running, success=True):
-        """Update the status indicator and text"""
-        if running:
-            if success:
-                self.status_indicator.config(bg="#00C851")  # Green
-                self.status_text.config(text="RUNNING", fg="#00C851")
-                self.start_btn.config(text="STOP ISOLATION", bg="#CC0000")
-            else:
-                self.status_indicator.config(bg="#FFB347")  # Orange
-                self.status_text.config(text="ERROR", fg="#FF6B35")
-                self.start_btn.config(text="START VOICE ISOLATION", bg="#FF6B35")
-        else:
-            self.status_indicator.config(bg="#E0E0E0")  # Gray
-            self.status_text.config(text="STOPPED", fg="#CC0000")
-            self.start_btn.config(text="START VOICE ISOLATION", bg="#FF6B35")
-    
-    def toggle(self):
-        """Start/stop"""
-        if not self.isolator or not self.isolator.running:
+            """Load and display devices correctly"""
             try:
-                mic_str = self.mic_combo.get()
-                speaker_str = self.speaker_combo.get()
-                output_str = self.output_combo.get()
+                devices = sd.query_devices()
                 
-                if not all([mic_str, speaker_str, output_str]):
-                    messagebox.showerror("Error", "Please select all three devices")
-                    return
+                mics = []
+                speakers = []
+                outputs = []
                 
-                try:
-                    mic_id = int(mic_str.split('[')[1].split(']')[0])
-                    speaker_id = int(speaker_str.split('[')[1].split(']')[0])
-                    output_id = int(output_str.split('[')[1].split(']')[0])
-                except ValueError:
-                    messagebox.showerror("Error", "Invalid device selection")
-                    return
-                
-                self.isolator = SpeakerLove(mic_id, speaker_id, output_id)
-                self.isolator.subtraction_strength = self.strength_var.get()
-                
-                if self.isolator.start():
-                    self.isolator.enabled = True
-                    self.update_status(running=True, success=True)
-                else:
-                    self.isolator = None
-                    self.update_status(running=False, success=False)
+                for i, dev in enumerate(devices):
+                    name_lower = dev['name'].lower()
+                    dev_str = f"[{i}] {dev['name']}"
                     
+                    # MICROPHONES: Real mics are typically 1-2 channels input, 0 output
+                    if dev['max_input_channels'] in [1, 2] and dev['max_output_channels'] == 0:
+                        if any(k in name_lower for k in ['microphone', 'mic', 'capture', 'input']):
+                            if not any(k in name_lower for k in ['voicemeeter', 'what u hear', 'stereo mix']):
+                                mics.append(dev_str)
+                    
+                    # LOOPBACK: Has 2+ input channels, 0 output
+                    if dev['max_output_channels'] == 0 and dev['max_input_channels'] > 0:
+                        if any(k in name_lower for k in ['voicemeeter', 'what u hear', 'stereo mix', 'input (']):
+                            speakers.append(dev_str)
+                    
+                    # OUTPUT: Voicemeeter virtual microphones
+                    if dev['max_output_channels'] > 0:
+                        if any(k in name_lower for k in ['voicemeeter']):
+                            outputs.append(dev_str)
+                        else:
+                            # Also include physical speakers as fallback
+                            if any(k in name_lower for k in ['speaker', 'sound mapper']):
+                                outputs.append(dev_str)
+                
+                self.mic_combo['values'] = mics
+                self.speaker_combo['values'] = speakers
+                self.output_combo['values'] = outputs
+                
+                if mics:
+                    self.mic_combo.current(0)
+                if speakers:
+                    stereo_mix_idx = next((i for i, s in enumerate(speakers) if 'stereo mix' in s.lower()), 0)
+                    self.speaker_combo.current(stereo_mix_idx)
+                if outputs:
+                    # Try to find Voicemeeter Input as default
+                    voicemeeter_idx = next((i for i, s in enumerate(outputs) if 'voicemeeter input' in s.lower()), 0)
+                    self.output_combo.current(voicemeeter_idx)
+                
+                print(f"Found {len(mics)} mics, {len(speakers)} loopbacks, {len(outputs)} outputs")
+                
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to start: {e}")
-                self.update_status(running=False, success=False)
-        else:
-            self.isolator.enabled = False
-            self.isolator.stop()
-            self.isolator = None
-            self.update_status(running=False, success=True)
+                messagebox.showerror("Error", f"Device refresh failed: {e}")
+        
+        def update_strength(self, value):
+            """Update strength display and value"""
+            val = float(value)
+            self.strength_label.config(text=f"{val:.1f}")
+            if self.isolator:
+                self.isolator.subtraction_strength = val
+    
+        def update_delay(self):
+            """Update delay compensation"""
+            val = self.delay_var.get()
+            self.delay_label.config(text=f"±{val}ms")
+            if self.isolator:
+                self.isolator.delay_compensation = val
+        
+        def show_help(self):
+            """Show help dialog"""
+            help_text = """
+    SPEAKERLOVE - GAMING SETUP GUIDE
+    
+    For gamers who use SPEAKERS instead of headsets and want clean voice chat.
+    
+    SETUP:
+    1. Install VoiceMeeter: https://vb-audio.com/Voicemeeter/
+       - Route your game/app audio through VoiceMeeter
+       
+    2. Select devices in SpeakerLove:
+       - Your Microphone: Your physical microphone
+       - Game/Speaker Audio: Capture device (Stereo Mix or What U Hear)
+       - Output (Virtual Mic): Voicemeeter Input device
+       
+    3. Set Discord/Team Voice Input to: Voicemeeter Input device
+    
+    4. Click START and adjust sliders if needed
+    
+    RESULT:
+    - You don't hear your own voice (no echo!)
+    - Teammates hear only your voice (no game audio!)
+    - Clean, professional voice communication
+    
+    For issues or setup help, see the README file.
+            """
+            messagebox.showinfo("Help", help_text)
+        
+        def update_status(self, running, success=True):
+            """Update the status indicator and text"""
+            if running:
+                if success:
+                    self.status_indicator.config(bg="#00C851")  # Green
+                    self.status_text.config(text="RUNNING", fg="#00C851")
+                    self.start_btn.config(text="STOP ISOLATION", bg="#CC0000")
+                else:
+                    self.status_indicator.config(bg="#FFB347")  # Orange
+                    self.status_text.config(text="ERROR", fg="#FF6B35")
+                    self.start_btn.config(text="START VOICE ISOLATION", bg="#FF6B35")
+            else:
+                self.status_indicator.config(bg="#E0E0E0")  # Gray
+                self.status_text.config(text="STOPPED", fg="#CC0000")
+                self.start_btn.config(text="START VOICE ISOLATION", bg="#FF6B35")
+        
+        def toggle(self):
+            """Start/stop"""
+            if not self.isolator or not self.isolator.running:
+                try:
+                    mic_str = self.mic_combo.get()
+                    speaker_str = self.speaker_combo.get()
+                    output_str = self.output_combo.get()
+                    
+                    if not all([mic_str, speaker_str, output_str]):
+                        messagebox.showerror("Error", "Please select all three devices")
+                        return
+                    
+                    try:
+                        mic_id = int(mic_str.split('[')[1].split(']')[0])
+                        speaker_id = int(speaker_str.split('[')[1].split(']')[0])
+                        output_id = int(output_str.split('[')[1].split(']')[0])
+                    except ValueError:
+                        messagebox.showerror("Error", "Invalid device selection")
+                        return
+                    
+                    self.isolator = SpeakerLove(mic_id, speaker_id, output_id)
+                    self.isolator.subtraction_strength = self.strength_var.get()
+                    
+                    if self.isolator.start():
+                        self.isolator.enabled = True
+                        self.update_status(running=True, success=True)
+                    else:
+                        self.isolator = None
+                        self.update_status(running=False, success=False)
+                        
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to start: {e}")
+                    self.update_status(running=False, success=False)
+            else:
+                self.isolator.enabled = False
+                self.isolator.stop()
+                self.isolator = None
+                self.update_status(running=False, success=True)
 
 
 def main():
