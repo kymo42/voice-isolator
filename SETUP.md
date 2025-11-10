@@ -42,13 +42,13 @@ See Prerequisites above - this is essential!
 
 ### Step 2: Install SpeakerLove
 ```bash
-cd C:\Users\0\VoiceIsolator
-python voice_isolator.py
+cd C:\Users\0\SpeakerLove
+python SpeakerLove.py
 ```
 
 If this is your first time, you may need to install dependencies:
 ```bash
-cd C:\Users\0\VoiceIsolator
+cd C:\Users\0\SpeakerLove
 setup.bat
 ```
 
@@ -60,7 +60,7 @@ setup.bat
 Run this to see what audio devices you have:
 
 ```bash
-cd C:\Users\0\VoiceIsolator
+cd C:\Users\0\SpeakerLove
 python list_devices.py
 ```
 
@@ -89,7 +89,7 @@ You should see:
 ### Phase 3: Configure SpeakerLove
 1. Run the program:
    ```bash
-   python voice_isolator.py
+   python SpeakerLove.py
    ```
 
 2. The GUI will appear with 3 dropdowns:

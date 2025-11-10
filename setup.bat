@@ -21,6 +21,6 @@ if errorlevel 1 (
 
 echo.
 echo Installation complete!
-echo You can now run: python voice_isolator.py
+echo You can now run: python SpeakerLove.py
 echo.
 pause

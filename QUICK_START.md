@@ -19,8 +19,8 @@ Double-click: run.bat
 
 OR from command prompt:
 ```bash
-cd C:\Users\0\VoiceIsolator
-python voice_isolator.py
+cd C:\Users\0\SpeakerLove
+python SpeakerLove.py
 ```
 
 ### Step 4: Select Devices

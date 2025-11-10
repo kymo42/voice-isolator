@@ -89,7 +89,7 @@ def main():
     print()
     print("USAGE IN VOICE ISOLATOR:")
     print("-" * 80)
-    print("1. Open SpeakerLove: python voice_isolator.py")
+    print("1. Open SpeakerLove: python SpeakerLove.py")
     print("2. Select the recommended devices above")
     print("3. If loopback not found, install VoiceMeeter first")
     print()

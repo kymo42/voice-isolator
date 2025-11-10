@@ -38,7 +38,7 @@ Your Microphone + Game Audio → SpeakerLove → Clean Voice Only
 
 ### Option 2: Run from Python
 ```bash
-python voice_isolator.py
+python SpeakerLove.py
 ```
 
 ## Setup Instructions
@@ -64,7 +64,7 @@ python voice_isolator.py
 
 ### Step 3: Run SpeakerLove
 
-1. Run `SpeakerLove.exe` (or `python voice_isolator.py`)
+1. Run `SpeakerLove.exe` (or `python SpeakerLove.py`)
 2. The GUI will open
 
 ### Step 4: Select Audio Devices
