@@ -1,224 +1,153 @@
-# SpeakerLove - Gaming Audio Processor
+# SpeakerLove AI - Gaming Audio Processor
 
-Clean voice communication for gamers who LOVE using speakers instead of headsets.
+**Clean voice communication for gamers who LOVE using speakers instead of headsets.**
+
+Powered by **AI noise reduction** to automatically remove game audio, music, and background noise in real-time.
+
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ## What It Does
 
-**SpeakerLove** removes game/speaker audio from your microphone input so your teammates hear only your voice during gaming.
+**SpeakerLove** uses AI-powered noise reduction to filter your microphone input. It learns what background noise sounds like and removes it (game explosions, music, keyboard clicks) while preserving your voice.
 
 ### Perfect For:
 - 🎮 Gamers who use **speakers instead of headsets**
-- 💬 Playing games with minimal background noise (not in public)
-- 👥 Team-based games (Discord, Team chat, in-game voice)
-- 🎯 Competitive gaming where voice quality matters
+- 💬 Playing games with background noise
+- 👥 Team-based games (Discord, Teams, in-game voice)
+- 🎵 Removing music and game audio from voice chat
 
-### How It Works:
+## Quick Start
 
-```
-Your Microphone + Game Audio → SpeakerLove → Clean Voice Only
-                                    ↓
-                          Discord/Team Chat receives
-                          just your voice (no game!)
-```
+**Simply double-click `SpeakerLove_Launch.bat`**
+
+That's it! The launcher will:
+- ✅ Check if Python is installed
+- ✅ Auto-install dependencies if needed
+- ✅ Start the application
+
+*Manual method:* You can also run `python SpeakerLove.py` if you installed dependencies manually.
 
 ## Requirements
 
 1. **Windows 10/11**
-2. **VB-Audio VoiceMeeter** (Free) - For virtual audio routing
-3. **Microphone**
-4. **Speakers** (obviously!)
-5. **Python 3.7+** (if running from source) OR just use the .exe
+2. **Python 3.8+** - [Download here](https://www.python.org/downloads/)
+3. **VB-Audio VoiceMeeter** (Free) - [Download here](https://vb-audio.com/Voicemeeter/)
 
 ## Installation
 
-### Option 1: Use the .exe (Easiest)
-1. Download `SpeakerLove.exe` from the releases
-2. Double-click to run
-3. Follow setup instructions below
+### Step 1: Install Python
+- Download Python 3.8 or newer from [python.org](https://www.python.org/downloads/)
+- **IMPORTANT:** Check "Add Python to PATH" during installation
 
-### Option 2: Run from Python
+### Step 2: Install VoiceMeeter
+- Download and install VoiceMeeter from [vb-audio.com](https://vb-audio.com/Voicemeeter/)
+- Restart your computer after installation
+
+### Step 3: Download SpeakerLove
 ```bash
-python SpeakerLove.py
+git clone https://github.com/kymo42/SpeakerLove.git
+cd SpeakerLove
 ```
 
-## Setup Instructions
+### Step 4: Run SpeakerLove
+Double-click `SpeakerLove_Launch.bat` - it will automatically install dependencies on first run.
 
-### Step 1: Install VoiceMeeter (5 minutes)
+## Setup Guide
 
-1. Download from: https://vb-audio.com/Voicemeeter/
-2. Install and **restart your PC**
-3. This creates virtual audio devices needed for SpeakerLove
+### Configure Audio Routing
 
-### Step 2: Route Your Game Audio Through VoiceMeeter
+1. **Launch SpeakerLove**
+   - Double-click `SpeakerLove_Launch.bat`
 
-**Windows 11:**
-1. Settings → Sound → Volume mixer → "App volume and device preferences"
-2. For your game (Discord, browser, etc.):
-   - Output device → Set to "VoiceMeeter Virtual Input"
-3. Do this for ANY app that outputs audio
+2. **Select Devices:**
+   - **Microphone**: Your physical microphone
+   - **Output**: VoiceMeeter Input (virtual device)
 
-**Windows 10:**
-1. Right-click speaker icon → Sound settings
-2. Volume mixer → Find your game/app
-3. Change output to "VoiceMeeter Virtual Input"
+3. **Configure Your Voice Chat App** (Discord/Teams/etc)
+   - Set **Input Device** to: **VoiceMeeter Output**
 
-### Step 3: Run SpeakerLove
+4. **Start AI Isolation**
+   - Click "START AI ISOLATION"
+   - **First 2 seconds**: The AI learns background noise (stay quiet or let game audio play)
+   - **After that**: Active noise filtering begins
 
-1. Run `SpeakerLove.exe` (or `python SpeakerLove.py`)
-2. The GUI will open
+### How It Works
 
-### Step 4: Select Audio Devices
+```
+[Your Mic] → [SpeakerLove AI] → [VoiceMeeter Input] → [Discord/Teams]
+                    ↓
+            Removes game audio,
+            music, keyboard noise
+```
 
-**Your Microphone:**
-- Pick your actual microphone (usually "Microphone (Sound Blaster...)" or similar)
+## Features
 
-**Game/Speaker Audio (Loopback):**
-- Select one of:
-  - "What U Hear (Sound Blaster...)" 
-  - "Stereo Mix (Conexant...)"
-  - Any "Input (Voicemeeter...)" option
-
-**Output (Virtual Mic):**
-- **Important:** Select a "Voicemeeter" option (e.g., "[46] Voicemeeter Input")
-- This is where your CLEAN voice goes (NOT to speakers!)
-- This prevents you from hearing your own voice
-
-### Step 5: Click START
-
-1. Click "START - Begin Voice Isolation"
-2. Wait for status to turn **GREEN "RUNNING"**
-3. If error: Try different loopback device
-
-### Step 6: Configure Discord/Game
-
-Set your voice chat input device to the **same Voicemeeter option** you selected in SpeakerLove:
-
-**Discord:**
-- User Settings → Voice & Video
-- Microphone: Select your Voicemeeter device
-- Microphone Volume: Comfortable level
-- Test microphone
-
-**In-Game Voice Chat:**
-- Settings → Audio → Microphone
-- Select same Voicemeeter device
-
-### Step 7: Test
-
-1. Start a game with voice chat enabled
-2. Play game audio (music, effects, etc.)
-3. Speak into your microphone
-4. Ask a teammate: "Do you hear my voice?"
-5. Check: **You should NOT hear yourself through speakers**
-6. Teammates should hear: **Only your voice, no game audio**
+- ✨ **Real-time AI noise reduction**
+- 🎯 **Learns your environment** - adapts to your specific background noise
+- 🚀 **Low latency** - typically 20-50ms
+- 💻 **Simple GUI** - easy device selection
+- 🔧 **No complex configuration** - just select devices and start
 
 ## Troubleshooting
 
-### Issue: Loopback dropdown is empty
-**Solution:** Install/restart VoiceMeeter or enable Stereo Mix in Windows Sound settings
+### "Missing Requirements" Error
+Run this command in the SpeakerLove folder:
+```bash
+pip install -r requirements.txt
+```
 
-### Issue: Output dropdown doesn't show Voicemeeter
-**Solution:** 
-- Make sure VoiceMeeter is fully installed
-- Restart SpeakerLove
+### No Audio Output
+- Make sure you selected **VoiceMeeter Input** as the output device
+- Check that your voice chat app is using **VoiceMeeter Output** as input
 
-### Issue: Can't hear game audio through speakers
-**Solution:**
-1. Make sure game output is set to "VoiceMeeter Virtual Input" in Windows Sound settings
-2. Check VoiceMeeter is configured to output to your speakers
-3. Check game audio settings
+### Hearing Yourself / Echo
+- Do NOT select your speakers as the output device in SpeakerLove
+- Output should always be a virtual device (VoiceMeeter Input)
 
-### Issue: Still hearing your own voice through speakers
-**Solution:**
-1. Double-check Output device is set to Voicemeeter (not [13] or speakers!)
-2. If already correct, try different Voicemeeter option in Output dropdown
+### Poor Noise Reduction
+- When you click "START", stay quiet for 2 seconds so the AI can learn background noise
+- Or let your game audio play for 2 seconds to learn that noise profile
+- Restart the isolation to re-learn if your environment changes
 
-### Issue: SpeakerLove won't start (RED error)
-**Solution:**
-1. Refresh devices
-2. Try different Loopback option
-3. Try different Output option
-4. Ensure you selected ALL three devices
+## Manual Installation
 
-## Fine-Tuning
+If the launcher doesn't work:
 
-**Subtraction Strength Slider:**
-- **1.0** (default): Perfect for most games
-- **Lower (0.5-0.8)**: If your voice sounds too quiet
-- **Higher (1.5-2.0)**: If teammates still hear game audio
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-Adjust while running for real-time testing!
+# Run the application
+python SpeakerLove.py
+```
 
-## FAQ
+## Dependencies
 
-**Q: Can I use this without VoiceMeeter?**
-A: You could use Stereo Mix or Virtual Audio Cable, but VoiceMeeter is free and reliable.
+- `numpy` - Audio processing
+- `sounddevice` - Audio I/O
+- `noisereduce` - AI noise reduction
+- `scipy` - Signal processing
 
-**Q: Does this add much latency?**
-A: No, typically 20-50ms - imperceptible during voice chat.
+## Technical Details
 
-**Q: Can I use this for streaming?**
-A: Yes! Set your streaming software's microphone to the Voicemeeter output device.
-
-**Q: What if I want to hear myself sometimes?**
-A: Just select speakers as the Output device instead of Voicemeeter (but you'll hear yourself).
-
-**Q: Does this work with Valorant/CS2/Fortnite/etc?**
-A: Yes! Works with ANY game that lets you select a microphone device.
-
-**Q: Can I use this in public?**
-A: Not recommended. Works best in quiet environments (home) with minimal ambient noise besides game audio.
-
-## How It Works (Technical)
-
-1. **Captures microphone** (your voice + game audio)
-2. **Captures speaker output** (game audio being played)
-3. **Subtracts** speaker audio from microphone
-4. **Math:** Clean Voice = Microphone - Speaker Audio
-5. **Outputs** only your clean voice to a virtual microphone
-6. **Discord/Game** receives from the virtual mic
-
-No AI or magic - just audio mathematics!
-
-## Performance
-
-- **CPU Usage:** 5-15% on modern systems
-- **Memory:** ~100MB
-- **Latency:** 20-50ms
-- **Audio Quality:** Full fidelity (44.1kHz or 48kHz)
+- **Sample Rate**: 48kHz (optimal for voice)
+- **Chunk Size**: 2048 samples
+- **Noise Reduction**: Spectral gating with adaptive learning
+- **Latency**: ~43ms (2048/48000)
 
 ## License
 
-Free and open source
-
-## GitHub
-
-https://github.com/kymo42/SpeakerLove
+MIT License - See [LICENSE](LICENSE) file for details
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
+Contributions welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
-For issues:
-1. Check the Troubleshooting section
-2. Verify VoiceMeeter is installed
-3. Try refreshing devices
-4. Check device selection
-
-## Credits
-
-Built for gamers who prefer speakers to headsets and want clean team communication.
+Having issues? [Open an issue](https://github.com/kymo42/SpeakerLove/issues) on GitHub.
 
 ---
 
-**Enjoy crystal-clear voice communication!** 🎮🎤
+**Made with ❤️ for gamers who love speakers**

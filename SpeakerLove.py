@@ -1,9 +1,9 @@
 """
 SpeakerLove - Gaming Voice Chat Audio Processor
-Remove speaker/game audio from microphone input for clean voice transmission
+AI-Powered Noise Suppression for Clean Voice Transmission
 
-For gamers who LOVE using speakers instead of headsets and want clean voice communication
-without hearing their own voice or game audio in team chat.
+For gamers who LOVE using speakers instead of headsets.
+Uses noise reduction to remove game audio and background noise.
 
 GitHub: https://github.com/kymo42/SpeakerLove
 """
@@ -11,121 +11,121 @@ GitHub: https://github.com/kymo42/SpeakerLove
 import numpy as np
 import threading
 import queue
-from collections import deque
 import tkinter as tk
 from tkinter import ttk, messagebox
 import sounddevice as sd
 import sys
+import os
+
+# Try to import noise reduction library
+try:
+    import noisereduce as nr
+    AI_AVAILABLE = True
+    IMPORT_ERROR = None
+    print("✓ Noise Reduction Library Loaded")
+except ImportError as e:
+    AI_AVAILABLE = False
+    IMPORT_ERROR = str(e)
+    print(f"Noise reduction import failed: {e}")
 
 class SpeakerLove:
-    """Core audio processing engine"""
+    """Core audio processing engine using noise reduction"""
     
-    def __init__(self, mic_device, speaker_device, output_device, sample_rate=44100, chunk_size=2048):
+    def __init__(self, mic_device, output_device, sample_rate=48000, chunk_size=2048):
         self.mic_device = mic_device
-        self.speaker_device = speaker_device
         self.output_device = output_device
         self.sample_rate = sample_rate
         self.chunk_size = chunk_size
         
         self.running = False
         self.enabled = False
-        self.subtraction_strength = 1.0
-        self.delay_compensation = 0
         
-        self.audio_queue = queue.Queue(maxsize=5)
-        self.speaker_queue = queue.Queue(maxsize=5)
-        self.output_queue = queue.Queue(maxsize=5)
+        self.audio_queue = queue.Queue(maxsize=20)
+        self.output_queue = queue.Queue(maxsize=20)
         
         self.mic_stream = None
-        self.speaker_stream = None
         self.output_stream = None
         
+        # For noise profile learning
+        self.noise_profile = None
+        self.learning_frames = []
+        self.learning_mode = True
+        self.frames_to_learn = 10  # Learn from first 10 frames
+
     def _mic_callback(self, indata, frames, time, status):
         """Microphone input callback"""
+        if status:
+            print(f"Mic status: {status}")
         try:
-            audio = indata[:, 0] if indata.ndim > 1 else indata
-            try:
-                self.audio_queue.put_nowait(audio.copy().astype(np.float32))
-            except queue.Full:
-                pass
-        except Exception as e:
-            print(f"Mic callback error: {e}")
-    
-    def _speaker_callback(self, indata, frames, time, status):
-        """Speaker loopback callback"""
-        try:
-            audio = indata[:, 0] if indata.ndim > 1 else indata
-            try:
-                self.speaker_queue.put_nowait(audio.copy().astype(np.float32))
-            except queue.Full:
-                pass
-        except Exception as e:
-            print(f"Speaker callback error: {e}")
+            self.audio_queue.put_nowait(indata.copy().astype(np.float32))
+        except queue.Full:
+            pass
     
     def _output_callback(self, outdata, frames, time, status):
         """Output callback"""
+        if status:
+            print(f"Output status: {status}")
         try:
-            try:
-                processed = self.output_queue.get(timeout=0.01)
-                if outdata.ndim == 1:
-                    outdata[:] = processed[:len(outdata)]
-                else:
-                    outdata[:, 0] = processed[:len(outdata)]
-            except queue.Empty:
-                outdata[:] = 0
-        except Exception as e:
-            print(f"Output error: {e}")
+            data = self.output_queue.get_nowait()
+            # Ensure we fill the buffer
+            if len(data) < len(outdata):
+                outdata[:len(data)] = data
+                outdata[len(data):] = 0
+            else:
+                outdata[:] = data[:len(outdata)]
+        except queue.Empty:
             outdata[:] = 0
     
     def process_audio(self):
         """Main processing loop"""
-        speaker_buffer = deque(maxlen=10)  # Much smaller buffer for lower latency
-        
         while self.running:
             try:
-                mic_audio = self.audio_queue.get(timeout=0.1)
+                # Get audio chunk
+                mic_audio = self.audio_queue.get(timeout=1.0)
                 
-                # Get latest speaker audio
-                try:
-                    while True:
-                        speaker_audio = self.speaker_queue.get_nowait()
-                        speaker_buffer.append(speaker_audio)
-                except queue.Empty:
-                    pass
-                
-                if self.enabled and len(speaker_buffer) > 0:
-                    # Combine speaker buffer
-                    speaker_combined = np.concatenate(list(speaker_buffer))
-
-                    # Apply delay compensation if set
-                    if self.delay_compensation != 0:
-                        speaker_combined = np.roll(speaker_combined, self.delay_compensation)
-
-                    # Align lengths
-                    min_len = min(len(mic_audio), len(speaker_combined))
-                    mic_audio = mic_audio[:min_len]
-                    speaker_combined = speaker_combined[:min_len]
-
-                    # Subtract: Clean Voice = Microphone - Speaker Audio
-                    cleaned = mic_audio - (speaker_combined * self.subtraction_strength)
-                    cleaned = np.tanh(cleaned)  # Soft clipping
+                if self.enabled and AI_AVAILABLE:
+                    try:
+                        # Learn noise profile from first few frames
+                        if self.learning_mode and len(self.learning_frames) < self.frames_to_learn:
+                            self.learning_frames.append(mic_audio.copy())
+                            if len(self.learning_frames) >= self.frames_to_learn:
+                                # Build noise profile from collected frames
+                                noise_sample = np.concatenate(self.learning_frames)
+                                self.noise_profile = noise_sample
+                                self.learning_mode = False
+                                print("✓ Noise profile learned - AI active")
+                            cleaned = mic_audio  # Pass through while learning
+                        elif self.noise_profile is not None:
+                            # Apply noise reduction
+                            cleaned = nr.reduce_noise(
+                                y=mic_audio.flatten(),
+                                sr=self.sample_rate,
+                                y_noise=self.noise_profile.flatten(),
+                                stationary=False,
+                                prop_decrease=1.0
+                            )
+                            # Reshape to match input
+                            cleaned = cleaned.reshape(-1, 1)
+                        else:
+                            cleaned = mic_audio
+                        
+                    except Exception as e:
+                        print(f"Noise reduction error: {e}")
+                        cleaned = mic_audio
                 else:
                     cleaned = mic_audio
 
-                try:
-                    self.output_queue.put_nowait(cleaned)
-                except queue.Full:
-                    pass
-                    
+                self.output_queue.put_nowait(cleaned)
+                
             except queue.Empty:
                 continue
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Process Error: {e}")
     
     def start(self):
         """Start audio streams"""
         try:
-            print(f"Starting with: Mic={self.mic_device}, Speaker={self.speaker_device}, Output={self.output_device}")
+            print(f"Starting with: Mic={self.mic_device}, Output={self.output_device}")
             
             self.mic_stream = sd.InputStream(
                 device=self.mic_device,
@@ -135,15 +135,6 @@ class SpeakerLove:
                 callback=self._mic_callback
             )
             self.mic_stream.start()
-            
-            self.speaker_stream = sd.InputStream(
-                device=self.speaker_device,
-                samplerate=self.sample_rate,
-                channels=1,
-                blocksize=self.chunk_size,
-                callback=self._speaker_callback
-            )
-            self.speaker_stream.start()
             
             self.output_stream = sd.OutputStream(
                 device=self.output_device,
@@ -169,7 +160,7 @@ class SpeakerLove:
     def stop(self):
         """Stop audio"""
         self.running = False
-        for stream in [self.mic_stream, self.speaker_stream, self.output_stream]:
+        for stream in [self.mic_stream, self.output_stream]:
             if stream:
                 try:
                     stream.stop()
@@ -184,8 +175,8 @@ class GUI:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("SpeakerLove - Gaming Audio Processor")
-        self.root.geometry("600x550")
+        self.root.title("SpeakerLove AI - Noise Suppression")
+        self.root.geometry("500x450")
         self.root.configure(bg="#FFFFFF")
         
         # Configure custom styles
@@ -201,11 +192,11 @@ class GUI:
         title_frame = tk.Frame(main_frame, bg="#FFFFFF")
         title_frame.pack(pady=(0, 25))
         
-        tk.Label(title_frame, text="SpeakerLove",
+        tk.Label(title_frame, text="SpeakerLove AI",
                 font=("Segoe UI", 24, "bold"),
-                fg="#FF6B35", bg="#FFFFFF").pack()
+                fg="#4A90E2", bg="#FFFFFF").pack()
         
-        tk.Label(title_frame, text="Clean Voice for Gamers",
+        tk.Label(title_frame, text="AI-Powered Voice Isolation",
                 font=("Segoe UI", 12),
                 fg="#5A5A5A", bg="#FFFFFF").pack()
         
@@ -236,16 +227,6 @@ class GUI:
                                      state="readonly", font=("Segoe UI", 9))
         self.mic_combo.pack(fill=tk.X, pady=(5, 12))
         
-        # Speaker Audio
-        tk.Label(device_frame, text="Speaker Audio",
-                font=("Segoe UI", 10, "bold"),
-                fg="#2C2C2C", bg="#FFFFFF").pack(anchor=tk.W)
-        
-        self.speaker_var = tk.StringVar()
-        self.speaker_combo = ttk.Combobox(device_frame, textvariable=self.speaker_var,
-                                         state="readonly", font=("Segoe UI", 9))
-        self.speaker_combo.pack(fill=tk.X, pady=(5, 12))
-        
         # Output
         tk.Label(device_frame, text="Output (Virtual Mic)",
                 font=("Segoe UI", 10, "bold"),
@@ -261,61 +242,13 @@ class GUI:
         control_frame.pack(fill=tk.X, pady=(0, 20))
         
         self.start_btn = tk.Button(control_frame,
-                                  text="START VOICE ISOLATION",
+                                  text="START AI ISOLATION",
                                   command=self.toggle,
                                   font=("Segoe UI", 11, "bold"),
-                                  bg="#FF6B35", fg="#FFFFFF",
+                                  bg="#4A90E2", fg="#FFFFFF",
                                   relief="flat", bd=0, pady=12,
                                   cursor="hand2")
         self.start_btn.pack(fill=tk.X)
-        
-        # Settings
-        settings_frame = tk.Frame(main_frame, bg="#FFFFFF")
-        settings_frame.pack(fill=tk.X, pady=(0, 20))
-        
-        # Subtraction Strength
-        strength_frame = tk.Frame(settings_frame, bg="#FFFFFF")
-        strength_frame.pack(fill=tk.X, pady=(0, 15))
-        
-        tk.Label(strength_frame, text="Audio Removal Strength",
-                font=("Segoe UI", 9),
-                fg="#5A5A5A", bg="#FFFFFF").pack(anchor=tk.W)
-        
-        strength_control_frame = tk.Frame(strength_frame, bg="#FFFFFF")
-        strength_control_frame.pack(fill=tk.X, pady=(5, 0))
-        
-        self.strength_var = tk.DoubleVar(value=1.0)
-        self.strength_scale = ttk.Scale(strength_control_frame, from_=0.5, to=2.0,
-                                       variable=self.strength_var,
-                                       command=self.update_strength)
-        self.strength_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
-        
-        self.strength_label = tk.Label(strength_control_frame, text="1.0",
-                                      font=("Segoe UI", 9, "bold"),
-                                      fg="#2C2C2C", bg="#FFFFFF")
-        self.strength_label.pack(side=tk.RIGHT)
-        
-        # Delay Compensation
-        delay_frame = tk.Frame(settings_frame, bg="#FFFFFF")
-        delay_frame.pack(fill=tk.X)
-        
-        tk.Label(delay_frame, text="Timing Offset (ms)",
-                font=("Segoe UI", 9),
-                fg="#5A5A5A", bg="#FFFFFF").pack(anchor=tk.W)
-        
-        delay_control_frame = tk.Frame(delay_frame, bg="#FFFFFF")
-        delay_control_frame.pack(fill=tk.X, pady=(5, 0))
-        
-        self.delay_var = tk.IntVar(value=0)
-        self.delay_spin = ttk.Spinbox(delay_control_frame, from_=-100, to=100,
-                                     textvariable=self.delay_var,
-                                     command=self.update_delay, width=10)
-        self.delay_spin.pack(side=tk.LEFT)
-        
-        self.delay_label = tk.Label(delay_control_frame, text="±0ms",
-                                   font=("Segoe UI", 9),
-                                   fg="#5A5A5A", bg="#FFFFFF", padx=(10, 0))
-        self.delay_label.pack(side=tk.LEFT)
         
         # Bottom buttons
         button_frame = tk.Frame(main_frame, bg="#FFFFFF")
@@ -330,6 +263,10 @@ class GUI:
                   style="Clean.TButton").pack(side=tk.RIGHT)
         
         self.refresh_devices()
+        
+        if not AI_AVAILABLE:
+            error_msg = f"Noise reduction failed to load.\n\nError: {IMPORT_ERROR}\n\nPlease run: pip install -r requirements.txt"
+            messagebox.showwarning("Missing Requirements", error_msg)
     
     def configure_styles(self):
         """Configure custom ttk styles for clean design"""
@@ -342,7 +279,7 @@ class GUI:
                        bordercolor="#5A5A5A",
                        lightcolor="#FFFFFF",
                        darkcolor="#5A5A5A",
-                       arrowcolor="#FF6B35")
+                       arrowcolor="#4A90E2")
         
         # Button style
         style.configure("Clean.TButton",
@@ -351,22 +288,8 @@ class GUI:
                        bordercolor="#E0E0E0",
                        lightcolor="#FFFFFF",
                        darkcolor="#E0E0E0",
-                       focuscolor="#FF6B35",
+                       focuscolor="#4A90E2",
                        focusthickness=2)
-        
-        # Scale style
-        style.configure("TScale",
-                       background="#FFFFFF",
-                       troughcolor="#E0E0E0",
-                       slidercolor="#FF6B35",
-                       bordercolor="#5A5A5A")
-        
-        # Spinbox style
-        style.configure("TSpinbox",
-                       fieldbackground="#FFFFFF",
-                       background="#E0E0E0",
-                       bordercolor="#5A5A5A",
-                       arrowcolor="#FF6B35")
     
     def refresh_devices(self):
         """Load and display devices correctly"""
@@ -374,23 +297,17 @@ class GUI:
             devices = sd.query_devices()
             
             mics = []
-            speakers = []
             outputs = []
             
             for i, dev in enumerate(devices):
                 name_lower = dev['name'].lower()
                 dev_str = f"[{i}] {dev['name']}"
                 
-                # MICROPHONES: Real mics are typically 1-2 channels input, 0 output
-                if dev['max_input_channels'] in [1, 2] and dev['max_output_channels'] == 0:
+                # MICROPHONES
+                if dev['max_input_channels'] > 0:
                     if any(k in name_lower for k in ['microphone', 'mic', 'capture', 'input']):
                         if not any(k in name_lower for k in ['voicemeeter', 'what u hear', 'stereo mix']):
                             mics.append(dev_str)
-                
-                # LOOPBACK: Has 2+ input channels, 0 output
-                if dev['max_output_channels'] == 0 and dev['max_input_channels'] > 0:
-                    if any(k in name_lower for k in ['voicemeeter', 'what u hear', 'stereo mix', 'input (']):
-                        speakers.append(dev_str)
                 
                 # OUTPUT: Voicemeeter virtual microphones
                 if dev['max_output_channels'] > 0:
@@ -402,64 +319,38 @@ class GUI:
                             outputs.append(dev_str)
             
             self.mic_combo['values'] = mics
-            self.speaker_combo['values'] = speakers
             self.output_combo['values'] = outputs
             
             if mics:
                 self.mic_combo.current(0)
-            if speakers:
-                stereo_mix_idx = next((i for i, s in enumerate(speakers) if 'stereo mix' in s.lower()), 0)
-                self.speaker_combo.current(stereo_mix_idx)
             if outputs:
                 # Try to find Voicemeeter Input as default
                 voicemeeter_idx = next((i for i, s in enumerate(outputs) if 'voicemeeter input' in s.lower()), 0)
                 self.output_combo.current(voicemeeter_idx)
             
-            print(f"Found {len(mics)} mics, {len(speakers)} loopbacks, {len(outputs)} outputs")
+            print(f"Found {len(mics)} mics, {len(outputs)} outputs")
             
         except Exception as e:
             messagebox.showerror("Error", f"Device refresh failed: {e}")
     
-    def update_strength(self, value):
-        """Update strength display and value"""
-        val = float(value)
-        self.strength_label.config(text=f"{val:.1f}")
-        if self.isolator:
-            self.isolator.subtraction_strength = val
-
-    def update_delay(self):
-        """Update delay compensation"""
-        val = self.delay_var.get()
-        self.delay_label.config(text=f"±{val}ms")
-        if self.isolator:
-            self.isolator.delay_compensation = val
-    
     def show_help(self):
         """Show help dialog"""
         help_text = """
-SPEAKERLOVE - GAMING SETUP GUIDE
+SPEAKERLOVE AI - SETUP GUIDE
 
-For gamers who use SPEAKERS instead of headsets and want clean voice chat.
-
-SETUP:
 1. Install VoiceMeeter: https://vb-audio.com/Voicemeeter/
-   - Route your game/app audio through VoiceMeeter
    
-2. Select devices in SpeakerLove:
-   - Your Microphone: Your physical microphone
-   - Game/Speaker Audio: Capture device (Stereo Mix or What U Hear)
-   - Output (Virtual Mic): Voicemeeter Input device
+2. Select devices:
+   - Microphone: Your physical microphone
+   - Output: Voicemeeter Input device
    
-3. Set Discord/Team Voice Input to: Voicemeeter Input device
+3. Set Discord/Game Voice Input to: Voicemeeter Input device
 
-4. Click START and adjust sliders if needed
+4. Click START AI ISOLATION
+   - First few seconds: Learning background noise
+   - After that: Active noise filtering
 
-RESULT:
-- You don't hear your own voice (no echo!)
-- Teammates hear only your voice (no game audio!)
-- Clean, professional voice communication
-
-For issues or setup help, see the README file.
+The AI will automatically filter out game audio and background noise.
         """
         messagebox.showinfo("Help", help_text)
     
@@ -473,37 +364,34 @@ For issues or setup help, see the README file.
             else:
                 self.status_indicator.config(bg="#FFB347")  # Orange
                 self.status_text.config(text="ERROR", fg="#FF6B35")
-                self.start_btn.config(text="START VOICE ISOLATION", bg="#FF6B35")
+                self.start_btn.config(text="START AI ISOLATION", bg="#4A90E2")
         else:
             self.status_indicator.config(bg="#E0E0E0")  # Gray
             self.status_text.config(text="STOPPED", fg="#CC0000")
-            self.start_btn.config(text="START VOICE ISOLATION", bg="#FF6B35")
+            self.start_btn.config(text="START AI ISOLATION", bg="#4A90E2")
     
     def toggle(self):
         """Start/stop"""
         if not self.isolator or not self.isolator.running:
             try:
                 mic_str = self.mic_combo.get()
-                speaker_str = self.speaker_combo.get()
                 output_str = self.output_combo.get()
                 
-                if not all([mic_str, speaker_str, output_str]):
-                    messagebox.showerror("Error", "Please select all three devices")
+                if not all([mic_str, output_str]):
+                    messagebox.showerror("Error", "Please select both devices")
                     return
                 
                 try:
                     mic_id = int(mic_str.split('[')[1].split(']')[0])
-                    speaker_id = int(speaker_str.split('[')[1].split(']')[0])
                     output_id = int(output_str.split('[')[1].split(']')[0])
                 except ValueError:
                     messagebox.showerror("Error", "Invalid device selection")
                     return
                 
-                self.isolator = SpeakerLove(mic_id, speaker_id, output_id)
-                self.isolator.subtraction_strength = self.strength_var.get()
+                self.isolator = SpeakerLove(mic_id, output_id)
+                self.isolator.enabled = True
                 
                 if self.isolator.start():
-                    self.isolator.enabled = True
                     self.update_status(running=True, success=True)
                 else:
                     self.isolator = None
